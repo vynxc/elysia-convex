@@ -33,7 +33,7 @@ export const api_controller = new Elysia({ prefix: '/api' })
 		return res;
 	});
 
-export const elysia = new Elysia({ prefix: '/api' })
+export const elysia = new Elysia()
 	.use(swagger())
 	.use(cors())
 	.use(convex<ActionCtx>())
