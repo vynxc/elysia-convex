@@ -1,6 +1,6 @@
 import { HttpRouter, RoutableMethod, PublicHttpAction, GenericActionCtx } from "convex/server";
 import { Elysia as ElysiaBase, DefinitionBase, ElysiaConfig, EphemeralType, RouteBase, SingletonBase } from "elysia";
-import { InternalRoute, MetadataBase } from "elysia/dist/types";
+import { InternalRoute, MetadataBase } from "elysia/types";
 export declare class RouteMatcher {
     private routes;
     /**

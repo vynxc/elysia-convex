@@ -14,7 +14,7 @@ import {
 	RouteBase,
 	SingletonBase,
 } from "elysia";
-import { InternalRoute, MetadataBase } from "elysia/dist/types";
+import { InternalRoute, MetadataBase } from "elysia/types";
 
 export class RouteMatcher {
 	private routes: Array<{
