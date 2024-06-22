@@ -1,6 +1,25 @@
 {
 	"name": "elysia-convex",
-	"version": "1.0.1",
+	"version": "1.0.0",
+	"author": "vynxc",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/vynxc/elysia-convex"
+	},
+	"authors": [
+		"https://github.com/vynxc"
+	],
+	"bugs": {
+		"url": "https://github.com/vynxc/elysia-convex/issues"
+	},
+	"keywords": [
+		"elysia",
+		"convex",
+		"http",
+		"router"
+	],
+	"homepage": "https://github.com/vynxc/elysia-convex#readme",
 	"description": "Use Elysia with Convex",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
