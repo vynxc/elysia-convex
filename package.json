@@ -1,0 +1,21 @@
+{
+	"name": "elysia-convex",
+	"version": "1.0.1",
+	"description": "Use Elysia with Convex",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"type": "module",
+	"scripts": {
+		"build": "tsc"
+	},
+	"peerDependencies": {
+		"elysia": "^1.0.25",
+		"convex": "^1.12.0"
+	},
+	"devDependencies": {
+		"typescript": "5.5.2"
+	},
+	"files": [
+		"dist"
+	]
+}
