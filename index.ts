@@ -52,7 +52,13 @@ export class RouteMatcher {
 	 * @returns The path of the matching route, or null if no match is found.
 	 */
 	find(method: string, url: string): string | null {
-		// Check for an exact match first (non-wildcard routes)
+
+		const perfectMatch = this.routes.find(x=>x.route.path === url && x.route.method === method);
+
+		if(perfectMatch){
+			return perfectMatch.route.path;
+		}
+
 		for (const {
 			route: { method: m, path },
 			regex,
@@ -241,8 +247,8 @@ export class HttpRouterWithElysia extends HttpRouter {
 			if (!spec.pathPrefix.endsWith("/")) {
 				throw new Error(`pathPrefix ${spec.pathPrefix} must end with a /`);
 			}
-			const route = this._routeMatcher.find(spec.method, spec.pathPrefix);
-			if(route && route !== spec.pathPrefix){
+			const route = this._routeMatcher.find(spec.method, spec.pathPrefix+'*');
+			if(route && route !== spec.pathPrefix+'*'){
 				throw new Error(
 					`Path '${spec.pathPrefix}' for method ${spec.method} already in use, found ${route}`,
 				  );
