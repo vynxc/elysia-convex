@@ -28,7 +28,10 @@ export class RouteMatcher {
      * @returns The path of the matching route, or null if no match is found.
      */
     find(method, url) {
-        // Check for an exact match first (non-wildcard routes)
+        const perfectMatch = this.routes.find(x => x.route.path === url && x.route.method === method);
+        if (perfectMatch) {
+            return perfectMatch.route.path;
+        }
         for (const { route: { method: m, path }, regex, isWildcard, } of this.routes) {
             if (!isWildcard && m === method && regex.test(url)) {
                 return path;
@@ -150,8 +153,8 @@ export class HttpRouterWithElysia extends HttpRouter {
             if (!spec.pathPrefix.endsWith("/")) {
                 throw new Error(`pathPrefix ${spec.pathPrefix} must end with a /`);
             }
-            const route = this._routeMatcher.find(spec.method, spec.pathPrefix);
-            if (route && route !== spec.pathPrefix) {
+            const route = this._routeMatcher.find(spec.method, spec.pathPrefix + '*');
+            if (route && route !== spec.pathPrefix + '*') {
                 throw new Error(`Path '${spec.pathPrefix}' for method ${spec.method} already in use, found ${route}`);
             }
             this._app.route(spec.method, spec.pathPrefix + '*', spec.handler);
@@ -194,12 +197,3 @@ function normalizeMethod(method) {
         return "GET";
     return method;
 }
-const routeMatcher = new RouteMatcher();
-// Adding specific and wildcard routes
-routeMatcher.add({ method: "GET", path: "/elysie/w/", handler: () => { } });
-routeMatcher.add({ method: "GET", path: "/elysie/*", handler: () => { } });
-// Test cases
-console.log(routeMatcher.find("GET", "/elysie/w/")); // Should return "/elysie/w/"
-console.log(routeMatcher.find("GET", "/elysie/something/")); // Should return "/elysie/*"
-// Negative test case (no match)
-console.log(routeMatcher.find("GET", "/nonexistent/")); // Should return null
