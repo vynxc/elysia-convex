@@ -1,4 +1,4 @@
-import { HttpRouter, RoutableMethod, PublicHttpAction, GenericActionCtx } from "convex/server";
+import { HttpRouter, RoutableMethod, PublicHttpAction, GenericActionCtx, RouteSpec } from "convex/server";
 import { Elysia as ElysiaBase, DefinitionBase, ElysiaConfig, EphemeralType, RouteBase, SingletonBase } from "elysia";
 import { InternalRoute, MetadataBase } from "elysia/types";
 export declare class RouteMatcher {
@@ -10,6 +10,7 @@ export declare class RouteMatcher {
     add(route: Pick<InternalRoute, "method" | "path" | "handler">): void;
     /**
      * Finds a matching route for a given method and URL path.
+     * Prioritizes exact matches over wildcard matches.
      * @param method The HTTP method to match.
      * @param url The URL path to match.
      * @returns The path of the matching route, or null if no match is found.
@@ -32,6 +33,7 @@ export declare class Elysia<BasePath extends string = "", Scoped extends boolean
 }, Metadata extends MetadataBase = {
     schema: {};
     macro: {};
+    macroFn: {};
 }, Routes extends RouteBase = {}, Ephemeral extends EphemeralType = {
     derive: {};
     resolve: {};
@@ -68,6 +70,7 @@ export declare function convex<ActionCtx extends GenericActionCtx<any>>(): Elysi
 }, {
     schema: {};
     macro: {};
+    macroFn: {};
 }, {}, {
     derive: {};
     resolve: {};
@@ -103,6 +106,7 @@ export declare class HttpRouterWithElysia extends HttpRouter {
      * @param _app An instance of `ElysiaConvex` used to handle requests.
      */
     constructor(_app: Elysia<any, any, any, any, any, any, any, any> | ElysiaBase<any, any, any, any, any, any, any, any>);
+    route: (spec: RouteSpec) => this;
     /**
      * Retrieves and maps routes from the `ElysiaConvex` instance to be used with Convex's `HttpRouter`.
      * @returns An array of tuples representing Convex routes.

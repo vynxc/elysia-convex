@@ -7,19 +7,36 @@ export class RouteMatcher {
      * @param route The route to add.
      */
     add(route) {
-        const regexStr = route.path.replace(/\*/g, ".*").replace(/:(\w+)/g, "([^/]+)") + "$";
-        this.routes.push({ route, regex: new RegExp(regexStr) });
+        const isWildcard = route.path.includes("*");
+        const regexStr = "^" +
+            route.path
+                .replace(/\*/g, ".*") // Replace '*' with '.*' for wildcard matching
+                .replace(/:(\w+)/g, "([^/]+)") // Replace ':param' with a capturing group '([^/]+)')
+                .replace(/\/$/, "") + // Ensure trailing slash is optional
+            "/?$";
+        this.routes.push({
+            route,
+            regex: new RegExp(regexStr),
+            isWildcard,
+        });
     }
     /**
      * Finds a matching route for a given method and URL path.
+     * Prioritizes exact matches over wildcard matches.
      * @param method The HTTP method to match.
      * @param url The URL path to match.
      * @returns The path of the matching route, or null if no match is found.
      */
     find(method, url) {
-        for (const { route: { method: m, path }, regex, } of this.routes) {
-            const match = regex.exec(url);
-            if (m === method && match !== null) {
+        // Check for an exact match first (non-wildcard routes)
+        for (const { route: { method: m, path }, regex, isWildcard, } of this.routes) {
+            if (!isWildcard && m === method && regex.test(url)) {
+                return path;
+            }
+        }
+        // If no exact match is found, check for a wildcard match
+        for (const { route: { method: m, path }, regex, isWildcard, } of this.routes) {
+            if (isWildcard && m === method && regex.test(url)) {
                 return path;
             }
         }
@@ -36,7 +53,6 @@ export class RouteMatcher {
             return [
                 path,
                 method,
-                //with elyisa a handler can be a function or a string though it dont work because aot is disabled. this could be fixed in the future so i added for newer versions of elysia?
                 typeof route.handler === "function"
                     ? route.handler
                     : (...args) => { },
@@ -105,6 +121,43 @@ export class HttpRouterWithElysia extends HttpRouter {
             }
         });
     }
+    route = (spec) => {
+        this.getRoutes();
+        if (!spec.handler)
+            throw new Error(`route requires handler`);
+        if (!spec.method)
+            throw new Error(`route requires method`);
+        if (!ROUTABLE_HTTP_METHODS.includes(spec.method)) {
+            throw new Error(`'${spec.method}' is not an allowed HTTP method (like GET, POST, PUT etc.)`);
+        }
+        if ("path" in spec) {
+            if ("pathPrefix" in spec) {
+                throw new Error(`Invalid httpRouter route: cannot contain both 'path' and 'pathPrefix'`);
+            }
+            if (!spec.path.startsWith("/")) {
+                throw new Error(`path '${spec.path}' does not start with a /`);
+            }
+            const route = this._routeMatcher.find(spec.method, spec.path);
+            if (route) {
+                throw new Error(`Path '${spec.path}' for method ${spec.method} already in use`);
+            }
+            this._app.route(spec.method, spec.path, spec.handler);
+        }
+        else if ("pathPrefix" in spec) {
+            if (!spec.pathPrefix.startsWith("/")) {
+                throw new Error(`pathPrefix '${spec.pathPrefix}' does not start with a /`);
+            }
+            if (!spec.pathPrefix.endsWith("/")) {
+                throw new Error(`pathPrefix ${spec.pathPrefix} must end with a /`);
+            }
+            const route = this._routeMatcher.find(spec.method, spec.pathPrefix);
+            if (route && route !== spec.pathPrefix) {
+                throw new Error(`Path '${spec.pathPrefix}' for method ${spec.method} already in use, found ${route}`);
+            }
+            this._app.route(spec.method, spec.pathPrefix + '*', spec.handler);
+        }
+        return this;
+    };
     /**
      * Retrieves and maps routes from the `ElysiaConvex` instance to be used with Convex's `HttpRouter`.
      * @returns An array of tuples representing Convex routes.
@@ -141,3 +194,12 @@ function normalizeMethod(method) {
         return "GET";
     return method;
 }
+const routeMatcher = new RouteMatcher();
+// Adding specific and wildcard routes
+routeMatcher.add({ method: "GET", path: "/elysie/w/", handler: () => { } });
+routeMatcher.add({ method: "GET", path: "/elysie/*", handler: () => { } });
+// Test cases
+console.log(routeMatcher.find("GET", "/elysie/w/")); // Should return "/elysie/w/"
+console.log(routeMatcher.find("GET", "/elysie/something/")); // Should return "/elysie/*"
+// Negative test case (no match)
+console.log(routeMatcher.find("GET", "/nonexistent/")); // Should return null
