@@ -291,17 +291,3 @@ function normalizeMethod(method: RoutableMethod | "HEAD"): RoutableMethod {
 	if (method === "HEAD") return "GET";
 	return method;
 }
-
-
-const routeMatcher = new RouteMatcher();
-
-// Adding specific and wildcard routes
-routeMatcher.add({ method: "GET", path: "/elysie/w/", handler: () => {} });
-routeMatcher.add({ method: "GET", path: "/elysie/*", handler: () => {} });
-
-// Test cases
-console.log(routeMatcher.find("GET", "/elysie/w/")); // Should return "/elysie/w/"
-console.log(routeMatcher.find("GET", "/elysie/something/")); // Should return "/elysie/*"
-
-// Negative test case (no match)
-console.log(routeMatcher.find("GET", "/nonexistent/")); // Should return null
